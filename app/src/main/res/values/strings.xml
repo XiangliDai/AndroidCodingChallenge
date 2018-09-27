@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Android Coding Challenge</string>
+    <string name="base_url">http://api.nytimes.com/svc/movies/v2/</string>
+    <string name="api_key">b75da00e12d54774a2d362adddcc9bef</string>
+    <string name="error_message">Something went wrong, please try again in a few minutes</string>
+</resources>
