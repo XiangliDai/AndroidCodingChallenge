@@ -11,22 +11,27 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.xdai.challenge.models.MovieReview
 import kotlinx.android.synthetic.main.main_fragment.*
 import com.xdai.challenge.R
 import com.xdai.challenge.controls.EndlessScrollManager
+import com.xdai.challenge.controls.NetworkManager
 
 import javax.inject.Inject
+
 
 class MainFragment : Fragment() {
 
     @Inject
     lateinit var factory: MainViewModelFactory
-    private var adapter: MovieReviewListAdapter? = null
-    private var viewModel: com.xdai.challenge.ui.main.MainViewModel? = null
+    private lateinit var adapter: MovieReviewListAdapter
+    private lateinit var viewModel: com.xdai.challenge.ui.main.MainViewModel
+    private lateinit var layoutManager: LinearLayoutManager
     private var movieReviewList: MutableList<MovieReview> = arrayListOf()
     private var endlessScrollManager: EndlessScrollManager? = null
-    private lateinit var layoutManager: LinearLayoutManager
+    private var isNetworkAvailable: Boolean? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.main_fragment, container, false)
@@ -34,17 +39,16 @@ class MainFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        initializeRecyclerView();
+
         (activity as MainActivity).component.inject(this)
 
-        viewModel = ViewModelProviders.of(this, factory).get(MainViewModel::class.java!!)
-        loadMovieReviews(0)
+        initializeRecyclerView();
 
-        viewModel!!.movieReviewsResult().observe(this, Observer {
+        viewModel = ViewModelProviders.of(this, factory).get(MainViewModel::class.java!!)
+
+        viewModel.movieReviewsResult().observe(this, Observer {
             error_message.visibility = View.GONE
-            progress_bar.visibility = View.GONE
-            if (swipe_refresh_layout.isRefreshing)
-                swipe_refresh_layout.isRefreshing = false
+            swipe_refresh_layout.isRefreshing = false
 
             if (it != null && it.status == "OK") {
                 movieReviewList.addAll(it.results)
@@ -55,12 +59,15 @@ class MainFragment : Fragment() {
             }
         })
 
-        viewModel!!.movieReviewsError().observe(this, Observer {
+        viewModel.movieReviewsError().observe(this, Observer {
             Log.e(LOG, "error: $it")
+            swipe_refresh_layout.isRefreshing = false
             error_message.text = getString(R.string.error_message)
-            progress_bar.visibility = View.GONE
+
             error_message.visibility = View.VISIBLE
         })
+
+        loadMovieReviews(0)
     }
 
     private fun initializeRecyclerView() {
@@ -72,13 +79,14 @@ class MainFragment : Fragment() {
         recycler_view.setHasFixedSize(true)
         swipe_refresh_layout.setOnRefreshListener {
             movieReviewList.clear()
-            adapter!!.notifyDataSetChanged()
+            adapter.notifyDataSetChanged()
+            endlessScrollManager?.resetState()
             loadMovieReviews(0)
         }
     }
 
     private fun bindEndlessScrollManager(hasMore: Boolean) {
-        if(endlessScrollManager == null) {
+        if (endlessScrollManager == null) {
             endlessScrollManager = object : EndlessScrollManager(layoutManager) {
                 override fun onLoadMore(page: Int, totalItemsCount: Int, view: RecyclerView) {
                     loadMovieReviews(adapter?.itemCount!!)
@@ -86,17 +94,48 @@ class MainFragment : Fragment() {
             }
             recycler_view.addOnScrollListener(endlessScrollManager)
         }
-        endlessScrollManager!!.hasMore = hasMore
-
+        endlessScrollManager?.hasMore = hasMore
     }
 
     private fun loadMovieReviews(offset: Int) {
-        viewModel!!.loadMovieReviews(getString(R.string.api_key), offset)
+        isNetworkAvailable = NetworkManager(context!!).isOnline()
+        if (isNetworkAvailable!!) {
+            swipe_refresh_layout.isRefreshing = true
+            viewModel.loadMovieReviews(getString(R.string.api_key), offset)
+        } else {
+            showNoInternetMessage()
+        }
 
     }
 
+    fun showNetworkStatus(isNetworkAvailable: Boolean) {
+        Log.d(LOG, "showNetworkStatus new isNetworkAvailable: $isNetworkAvailable")
+        Log.d(LOG, "showNetworkStatus current isNetworkAvailable: ${this.isNetworkAvailable}")
+
+        if (this.isNetworkAvailable != isNetworkAvailable) {
+            if (isNetworkAvailable && adapter.itemCount == 0) {
+                swipe_refresh_layout.isRefreshing = true
+                viewModel.loadMovieReviews(getString(R.string.api_key), 0)
+            } else if (!isNetworkAvailable) {
+                showNoInternetMessage()
+            }
+
+        }
+        this.isNetworkAvailable = isNetworkAvailable
+    }
+
+    private fun showNoInternetMessage() {
+        if (adapter.itemCount == 0) {
+            error_message.visibility = View.VISIBLE
+            swipe_refresh_layout.isRefreshing = false
+            error_message.text = getString(R.string.no_internet)
+        } else {
+            Toast.makeText(context, R.string.no_internet, Toast.LENGTH_LONG).show()
+        }
+    }
+
     companion object {
-        val LOG = MainFragment::class.java.canonicalName
+        val LOG: String = MainFragment::class.java.canonicalName
 
         fun newInstance(): MainFragment {
             return MainFragment()

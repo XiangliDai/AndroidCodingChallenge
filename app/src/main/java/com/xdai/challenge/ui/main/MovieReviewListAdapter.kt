@@ -32,21 +32,21 @@ class MovieReviewListAdapter(private val context: Context, private val movieRevi
     }
 
     class MovieReviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageView = itemView.findViewById<ImageView>(R.id.movie_image)
-        val title = itemView.findViewById<TextView>(R.id.title)
-        val headline = itemView.findViewById<TextView>(R.id.headline)
-        val byline = itemView.findViewById<TextView>(R.id.byline)
-        val short_summary = itemView.findViewById<TextView>(R.id.short_summary)
-        val rating = itemView.findViewById<TextView>(R.id.rating)
-        val publication_date = itemView.findViewById<TextView>(R.id.publication_date)
+        private val imageView: ImageView = itemView.findViewById(R.id.movie_image)
+        private val title: TextView = itemView.findViewById(R.id.title)
+        private val headline: TextView = itemView.findViewById(R.id.headline)
+        private val byline: TextView = itemView.findViewById(R.id.byline)
+        private val shortSummary: TextView = itemView.findViewById(R.id.short_summary)
+        private val rating: TextView = itemView.findViewById(R.id.rating)
+        private val publicationDate: TextView = itemView.findViewById(R.id.publication_date)
 
         fun bindItem(context: Context, movieReview: MovieReview) {
             title.text = movieReview.displayTitle
             headline.text = movieReview.headline
             byline.text = movieReview.byline
-            short_summary.text = movieReview.shortSummary
+            shortSummary.text = movieReview.shortSummary
             rating.text = movieReview.rating
-            publication_date.text = movieReview.publishedAt
+            publicationDate.text = movieReview.publishedAt
             if (movieReview.multimedia?.src != null)
                 Glide.with(context).load(movieReview.multimedia.src).into(imageView)
         }

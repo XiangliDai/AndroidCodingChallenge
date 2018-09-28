@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.opentable.xdai.myapplication", appContext.getPackageName());
+        assertEquals("com.xdai.challenge.AndroidCodingChallenge", appContext.getPackageName());
     }
 }

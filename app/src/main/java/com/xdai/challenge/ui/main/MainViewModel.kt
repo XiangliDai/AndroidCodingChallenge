@@ -31,7 +31,7 @@ class MainViewModel  @Inject constructor(private val movieReviewRepository: Movi
     }
 
     companion object {
-        val LOG = MainViewModel::class.java.canonicalName
+        val LOG: String = MainViewModel::class.java.canonicalName
     }
 
 }

@@ -7,6 +7,6 @@ data class Result (
     val copyright: String,
     @Json(name = "has_more")val hasMore: Boolean,
     @Json(name = "num_results")val numResults: Int,
-    val results: List<MovieReview>  = listOf<MovieReview>()
+    val results: List<MovieReview>  = listOf()
 
 )

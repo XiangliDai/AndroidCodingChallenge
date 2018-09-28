@@ -11,6 +11,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -25,7 +26,11 @@ class NetworkModule(private val baseUrl: String) {
         else
             logging.level = HttpLoggingInterceptor.Level.HEADERS
 
-        return OkHttpClient.Builder().addInterceptor(logging).build()
+        return OkHttpClient.Builder()
+                .addInterceptor(logging)
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build()
     }
 
     @Provides

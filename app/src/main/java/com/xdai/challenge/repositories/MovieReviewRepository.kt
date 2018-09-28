@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class MovieReviewRepository @Inject constructor(val apiInterface: ApiInterface) {
 
-    fun getMovieReviews(apikey: String, offset:Int): Observable<Result> {
-        return apiInterface.getMovieReviews(apikey, offset)
+    fun getMovieReviews(apiKey: String, offset:Int): Observable<Result> {
+        return apiInterface.getMovieReviews(apiKey, offset)
     }
 }
